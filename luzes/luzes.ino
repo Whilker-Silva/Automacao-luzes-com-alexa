@@ -1,3 +1,4 @@
+//incluido blibliotecas para uso do ESP8266
 #ifdef ARDUINO_ARCH_ESP32
 #include <WiFi.h>
 #else
@@ -5,41 +6,36 @@
 #endif
 #include <Espalexa.h>
 
-#define led 2
+#include <Espalexa.h> //incluindo bibliteca para comunicação com alexa
 
+#define led 2 //Definindo pino do led
+
+//Declarando nome da rede e senha do wifi
 const char *ssid = "Cristina ";
 const char *password = "07192123";
 
-boolean wifiConnected = false;
+Espalexa espalexa; //criando objeto espalexa
 
-Espalexa espalexa;
+//=============================================================================
 
 void setup()
 {
+    Serial.begin(115200); //iniciando comunicação serial
 
-    Serial.begin(115200);
+    pinMode(led, OUTPUT); //declarando modo do pino do led como OUTPUT
 
-    pinMode(led, OUTPUT);
-
-    wifiConnected = connectWifi();
-    if (wifiConnected == true)
+    if (connectWifi() == true) //se a conexão com wifi for concluida
     {
+        //sinalizar no serial e desligar led por padrão
         Serial.println("Conectado");
 
-        for (byte x; x < 10; x++)
-        {
-            digitalWrite(led, HIGH);
-            delay(200);
-            digitalWrite(led, LOW);
-            delay(200);
-        }
-
-        espalexa.addDevice("Light 1", firstLightChanged);
-        espalexa.begin();
+        espalexa.addDevice("LED", controla_led); //adicionando dispositivo led e informando qual função realizar
+        espalexa.begin();                        //iniciando comunicação com alexa
     }
 
-    else
+    else //falha na conexão com o wifi
     {
+        //mostra mensagem de erro no serial e piscar led para sinalização
         while (1)
         {
             Serial.println("Erro de conexão.");
@@ -51,30 +47,41 @@ void setup()
     }
 }
 
+//=============================================================================
+
 void loop()
 {
     espalexa.loop();
     delay(1);
 }
 
-//--------------------------------------------------------------------------
+//=============================================================================
 
-void firstLightChanged(uint8_t brightness)
+//Função para controle do led quando alexa for acionada
+void controla_led(uint8_t brightness)
 {
+    /*OBS: O módulo Wemos D1 R2 mini trabalha com nivel lógico invertido
+    por esse motivo ao informa HIGH o led desliga e ao informar LOW o led liga
+    Sendo caso for usar o código com um sistema de nivel lógioco convencional deve-se 
+    modifar código conforme o projeto*/
 
+    //se brilho for igual a 0 (desligado)
     if (brightness == 0)
     {
-        digitalWrite(led, HIGH);
-        Serial.println(brightness);
+        digitalWrite(led, HIGH);// desligar led conforme observação no inicio da função
+        Serial.println(brightness);// mostrar valor pwm no serial
     }
 
+    //se brilho for diferente de 0 (ligado)
     else
     {
-        digitalWrite(led, LOW);
-        Serial.println(brightness);
+        digitalWrite(led, LOW);// ligar led conforme observação no inicio da função
+        Serial.println(brightness);// mostrar valor pwm no serial
     }
+    
 }
 
+//Função para realizar a conxão com wifi
 boolean connectWifi()
 {
     boolean state = true;
