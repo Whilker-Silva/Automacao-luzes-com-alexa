@@ -1,15 +1,16 @@
-#include <Espalexa.h>
-
 #ifdef ARDUINO_ARCH_ESP32
 #include <WiFi.h>
 #else
 #include <ESP8266WiFi.h>
 #endif
+#include <Espalexa.h>
 
 #define led 2
 
 const char *ssid = "Cristina ";
 const char *password = "07192123";
+
+boolean wifiConnected = false;
 
 Espalexa espalexa;
 
@@ -17,14 +18,23 @@ void setup()
 {
 
     Serial.begin(115200);
+
     pinMode(led, OUTPUT);
 
-    if (connectWifi() == true)
+    wifiConnected = connectWifi();
+    if (wifiConnected == true)
     {
         Serial.println("Conectado");
-        digitalWrite(led, LOW);
 
-        espalexa.addDevice("LED", firstLightChanged);
+        for (byte x; x < 10; x++)
+        {
+            digitalWrite(led, HIGH);
+            delay(200);
+            digitalWrite(led, LOW);
+            delay(200);
+        }
+
+        espalexa.addDevice("Light 1", firstLightChanged);
         espalexa.begin();
     }
 
@@ -34,9 +44,9 @@ void setup()
         {
             Serial.println("Erro de conexão.");
             digitalWrite(led, LOW);
-            delay(200);
+            delay(2000);
             digitalWrite(led, HIGH);
-            delay(200);
+            delay(2000);
         }
     }
 }
