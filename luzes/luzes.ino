@@ -10,6 +10,9 @@
 
 #define led 2 //Definindo pino do led
 
+//Criando vetor para led RGB
+int led_rgb[]{3, 4, 5};
+
 //Declarando nome da rede e senha do wifi
 const char *ssid = "Cristina ";
 const char *password = "07192123";
@@ -22,15 +25,21 @@ void setup()
 {
     Serial.begin(115200); //iniciando comunicação serial
 
-    pinMode(led, OUTPUT); //declarando modo do pino do led como OUTPUT
+    pinMode(led, OUTPUT);        //declarando modo do pino do led como OUTPUT
+    pinMode(led_rgb[0], OUTPUT); //declarando modo dos pino RGB como OUTPUT
+    pinMode(led_rgb[1], OUTPUT); //declarando modo dos pino RGB como OUTPUT
+    pinMode(led_rgb[2], OUTPUT); //declarando modo dos pino RGB como OUTPUT
 
     if (connectWifi() == true) //se a conexão com wifi for concluida
     {
         //sinalizar no serial e desligar led por padrão
         Serial.println("Conectado");
 
-        espalexa.addDevice("LED", controla_led); //adicionando dispositivo led e informando qual função realizar
-        espalexa.begin();                        //iniciando comunicação com alexa
+        //adicionando dispositivos led e informando qual função realizar
+        espalexa.addDevice("LUZ QUARTO", luz_quarto);
+        espalexa.addDevice("LUZ RGB", controla_led_RGB);
+
+        espalexa.begin(); //iniciando comunicação com alexa
     }
 
     else //falha na conexão com o wifi
@@ -51,71 +60,76 @@ void setup()
 
 void loop()
 {
+    //Realizando verificar de comando da alexa
     espalexa.loop();
     delay(1);
 }
 
 //=============================================================================
 
-//Função para controle do led quando alexa for acionada
-void controla_led(uint8_t brightness, uint32_t rgb)
+//Função para controle da luz RGB
+void controla_led_RGB(uint8_t brightness, uint32_t rgb)
+{
+    //Delcarando variáveis para RGB
+    byte R = (rgb >> 16) & 0xFF;
+    byte G = (rgb >> 8) & 0xFF;
+    byte B = rgb & 0xFF;
+
+    //Realizando cálculo para brilho da luz
+    R = R * brightness / 255;
+    G = G * brightness / 255;
+    B = B * brightness / 255;
+
+    //Ligando led RGB de acordo com os valores fornecido pela alexa
+    analogWrite(led_rgb[0], R);
+    analogWrite(led_rgb[1], G);
+    analogWrite(led_rgb[2], B);
+
+    //mostrando no serial valores RGB
+    Serial.print("LUZ_RGB | ");
+    Serial.print("Cor: ");
+    Serial.print(R);
+    Serial.print(", ");
+    Serial.print(G);
+    Serial.print(", ");
+    Serial.println(B);
+}
+
+//Função para controle da luz Quarto
+void luz_quarto(uint8_t brightness)
 {
     /*OBS: O módulo Wemos D1 R2 mini trabalha com nivel lógico invertido
     por esse motivo ao informa HIGH o led desliga e ao informar LOW o led liga
     Sendo caso for usar o código com um sistema de nivel lógioco convencional deve-se 
     modifar código conforme o projeto*/
 
-    //se brilho for igual a 0 (desligado)
-    if (brightness == 0)
-    {
-        digitalWrite(led, HIGH); // desligar led conforme observação no inicio da função
+    byte x = 255 - brightness; //cálculo para conversão do nivel lógico conforme OBS
 
-        Serial.print("Brilho :");
-        Serial.print(brightness); // mostrar valor pwm no serial
-        Serial.print("  |  ");
+    analogWrite(led, x); // ligar luz com valor pwm cálculado
 
-        Serial.print(", Red: ");
-        Serial.print((rgb >> 16) & 0xFF); //get red component
-        Serial.print("  |  ");
-
-        Serial.print(", Green: ");
-        Serial.print((rgb >> 8) & 0xFF); //get green
-        Serial.print("  |  ");
-
-        Serial.print(", Blue: ");
-        Serial.println(rgb & 0xFF); //get blue
-    }
-
-    //se brilho for diferente de 0 (ligado)
-    else
-    {
-        digitalWrite(led, LOW); // ligar led conforme observação no inicio da função
-
-        Serial.print(", Red: ");
-        Serial.print((rgb >> 16) & 0xFF); //get red component
-        Serial.print("  |  ");
-
-        Serial.print(", Green: ");
-        Serial.print((rgb >> 8) & 0xFF); //get green
-        Serial.print("  |  ");
-
-        Serial.print(", Blue: ");
-        Serial.println(rgb & 0xFF); //get blue
-    }
+    // mostrar valor pwm no serial
+    Serial.print("LUZ_QUARTO | ");
+    Serial.print("Brilho: ");
+    Serial.println(brightness);
 }
 
 //Função para realizar a conxão com wifi
 boolean connectWifi()
 {
+
+    //declarando variáveis de estado e contagem
     boolean state = true;
     int i = 0;
 
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.mode(WIFI_STA);        //Modo de conexão wifi
+    WiFi.begin(ssid, password); //rede e senha do wifi
 
+    //tentando realizar conexão
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
+
+        //Caso a conexão falhe 20x mudar estado para false e dar brake no while
         if (i > 20)
         {
             state = false;
@@ -124,5 +138,7 @@ boolean connectWifi()
         i++;
     }
 
+    //finaliza função retorno valor de estado 
+    //caso tenha sucesso na conexão estado permanece true
     return state;
 }
