@@ -32,7 +32,7 @@ void setup()
 
     if (connectWifi() == true) //se a conexão com wifi for concluida
     {
-        //sinalizar no serial e desligar led por padrão
+        //sinalizar no serial
         Serial.println("Conectado");
 
         //adicionando dispositivos led e informando qual função realizar
