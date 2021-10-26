@@ -58,7 +58,7 @@ void loop()
 //=============================================================================
 
 //Função para controle do led quando alexa for acionada
-void controla_led(uint8_t brightness)
+void controla_led(uint8_t brightness, uint32_t rgb)
 {
     /*OBS: O módulo Wemos D1 R2 mini trabalha com nivel lógico invertido
     por esse motivo ao informa HIGH o led desliga e ao informar LOW o led liga
@@ -68,17 +68,40 @@ void controla_led(uint8_t brightness)
     //se brilho for igual a 0 (desligado)
     if (brightness == 0)
     {
-        digitalWrite(led, HIGH);// desligar led conforme observação no inicio da função
-        Serial.println(brightness);// mostrar valor pwm no serial
+        digitalWrite(led, HIGH); // desligar led conforme observação no inicio da função
+
+        Serial.print("Brilho :");
+        Serial.print(brightness); // mostrar valor pwm no serial
+        Serial.print("  |  ");
+
+        Serial.print(", Red: ");
+        Serial.print((rgb >> 16) & 0xFF); //get red component
+        Serial.print("  |  ");
+
+        Serial.print(", Green: ");
+        Serial.print((rgb >> 8) & 0xFF); //get green
+        Serial.print("  |  ");
+
+        Serial.print(", Blue: ");
+        Serial.println(rgb & 0xFF); //get blue
     }
 
     //se brilho for diferente de 0 (ligado)
     else
     {
-        digitalWrite(led, LOW);// ligar led conforme observação no inicio da função
-        Serial.println(brightness);// mostrar valor pwm no serial
+        digitalWrite(led, LOW); // ligar led conforme observação no inicio da função
+
+        Serial.print(", Red: ");
+        Serial.print((rgb >> 16) & 0xFF); //get red component
+        Serial.print("  |  ");
+
+        Serial.print(", Green: ");
+        Serial.print((rgb >> 8) & 0xFF); //get green
+        Serial.print("  |  ");
+
+        Serial.print(", Blue: ");
+        Serial.println(rgb & 0xFF); //get blue
     }
-    
 }
 
 //Função para realizar a conxão com wifi
