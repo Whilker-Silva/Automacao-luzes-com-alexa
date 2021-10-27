@@ -11,7 +11,7 @@
 #define led 2 //Definindo pino do led
 
 //Criando vetor para led RGB
-int led_rgb[]{3, 4, 5};
+int led_rgb[]{5, 4, 0};
 
 //Declarando nome da rede e senha do wifi
 const char *ssid = "Cristina ";
@@ -138,7 +138,7 @@ boolean connectWifi()
         i++;
     }
 
-    //finaliza função retorno valor de estado 
+    //finaliza função retorno valor de estado
     //caso tenha sucesso na conexão estado permanece true
     return state;
 }
