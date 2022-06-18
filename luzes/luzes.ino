@@ -4,8 +4,6 @@
 #else
 #include <ESP8266WiFi.h>
 #endif
-#include <Espalexa.h>
-
 #include <Espalexa.h> //incluindo bibliteca para comunicação com alexa
 
 #define led 2 //Definindo pino do led
